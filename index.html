@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flexprint · Painel de Desmobilização do Parque</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --navy: #0A2A5E;
+  --navy-light: #1B4B8F;
+  --navy-pale: #E9EFF9;
+  --yellow: #FFC72C;
+  --yellow-deep: #D69A00;
+  --bg: #F3F5F9;
+  --surface: #FFFFFF;
+  --ink: #101B33;
+  --muted: #5B6B8C;
+  --border: #DFE4EE;
+  --success: #16794F;
+  --success-bg: #E4F5EC;
+  --warn: #B4740B;
+  --warn-bg: #FCF1DC;
+  --danger: #B23A22;
+  --danger-bg: #FBE9E3;
+  --radius: 3px;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+body{
+  font-family:'IBM Plex Sans', -apple-system, sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  font-size:14px;
+  line-height:1.5;
+}
+
+.mono{ font-family:'IBM Plex Mono', monospace; }
+
+/* ---- App shell ---- */
+.app{ display:flex; min-height:100vh; }
+
+.sidebar{
+  width:212px;
+  flex-shrink:0;
+  background:var(--navy);
+  color:#fff;
+  padding:22px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:26px;
+}
+.brand{ display:flex; align-items:center; gap:9px; padding:0 6px; }
+.brand-mark{
+  width:26px; height:26px; background:var(--yellow); border-radius:2px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; color:var(--navy); font-size:14px; font-family:'IBM Plex Mono',monospace;
+}
+.brand-text{ font-weight:600; font-size:14.5px; letter-spacing:.2px; }
+.brand-sub{ font-size:10.5px; color:#AEC2E8; margin-top:1px; }
+
+.nav{ display:flex; flex-direction:column; gap:2px; }
+.nav-item{
+  display:flex; align-items:center; gap:9px;
+  padding:9px 10px; border-radius:var(--radius);
+  color:#C7D6F0; font-size:13px; cursor:pointer; border:none; background:none;
+  text-align:left; width:100%; font-family:inherit;
+}
+.nav-item:hover{ background:rgba(255,255,255,.06); color:#fff; }
+.nav-item.active{ background:rgba(255,199,44,.14); color:#fff; box-shadow:inset 2px 0 0 var(--yellow); }
+.nav-num{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:#7690C2; width:14px; }
+.nav-item.active .nav-num{ color:var(--yellow); }
+
+.sidebar-foot{ margin-top:auto; font-size:11px; color:#7690C2; padding:0 6px; line-height:1.5; }
+.sidebar-foot a{ color:#AEC2E8; }
+
+.main{ flex:1; min-width:0; padding:28px 34px 60px; max-width:1180px; }
+
+.page-head{ margin-bottom:22px; }
+.page-head h1{ font-size:20px; font-weight:600; }
+.page-head p{ color:var(--muted); font-size:13px; margin-top:4px; max-width:640px; }
+
+/* ---- shared bits ---- */
+.card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:16px;
+}
+.section-label{
+  font-size:11px; color:var(--navy-light); font-weight:600; letter-spacing:.3px;
+  margin-bottom:10px; display:flex; align-items:center; gap:7px;
+}
+.section-label .n{ font-family:'IBM Plex Mono',monospace; color:var(--yellow-deep); }
+
+.btn{
+  font-family:inherit; font-size:12.5px; font-weight:500; cursor:pointer;
+  border-radius:var(--radius); padding:7px 12px; border:1px solid var(--border);
+  background:#fff; color:var(--ink);
+}
+.btn:hover{ border-color:var(--navy-light); }
+.btn-primary{ background:var(--navy); color:#fff; border-color:var(--navy); }
+.btn-primary:hover{ background:var(--navy-light); border-color:var(--navy-light); }
+.btn-yellow{ background:var(--yellow); color:var(--navy); border-color:var(--yellow); font-weight:600; }
+.btn-yellow:hover{ background:var(--yellow-deep); }
+.btn-ghost{ border-color:transparent; background:none; color:var(--muted); }
+.btn-ghost:hover{ color:var(--danger); }
+.btn-sm{ padding:4px 8px; font-size:11.5px; }
+
+input, select, textarea{
+  font-family:inherit; font-size:13px; padding:7px 9px;
+  border:1px solid var(--border); border-radius:var(--radius); background:#fff; color:var(--ink);
+  width:100%;
+}
+input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--navy-light); }
+label{ font-size:11.5px; color:var(--muted); font-weight:500; display:block; margin-bottom:4px; }
+.field{ margin-bottom:12px; }
+
+/* ---- KPI grid ---- */
+.kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:22px; }
+.kpi{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:14px 16px; position:relative; overflow:hidden;
+}
+.kpi::before{ content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:var(--yellow); }
+.kpi-label{ font-size:11px; color:var(--muted); margin-bottom:6px; }
+.kpi-value{ font-family:'IBM Plex Mono',monospace; font-size:24px; font-weight:600; color:var(--navy); }
+.kpi-value small{ font-size:13px; font-weight:500; color:var(--muted); }
+.kpi-sub{ font-size:10.5px; color:var(--muted); margin-top:4px; }
+
+/* ---- funnel bar (overview) ---- */
+.funnel-bar{ display:flex; border-radius:var(--radius); overflow:hidden; height:34px; border:1px solid var(--border); }
+.funnel-seg{ display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px; font-weight:600; font-family:'IBM Plex Mono',monospace; min-width:2px; }
+.funnel-legend{ display:flex; flex-wrap:wrap; gap:12px; margin-top:10px; }
+.funnel-legend-item{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--muted); }
+.funnel-legend-dot{ width:9px; height:9px; border-radius:1px; }
+
+/* ---- kanban ---- */
+.kanban{ display:grid; grid-template-columns:repeat(7,minmax(150px,1fr)); gap:9px; overflow-x:auto; padding-bottom:8px; }
+.kanban-col{ background:var(--navy-pale); border-radius:var(--radius); min-width:150px; }
+.kanban-head{ padding:9px 10px; border-bottom:1px solid #D4E0F2; }
+.kanban-title{ font-size:11px; font-weight:600; color:var(--navy); }
+.kanban-count{ font-family:'IBM Plex Mono',monospace; font-size:16px; color:var(--navy); margin-top:2px; }
+.kanban-body{ padding:8px; display:flex; flex-direction:column; gap:6px; min-height:60px; }
+.kcard{
+  background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+  padding:8px 9px; font-size:11.5px;
+}
+.kcard-title{ font-weight:600; color:var(--ink); margin-bottom:2px; }
+.kcard-meta{ color:var(--muted); font-size:10.5px; margin-bottom:6px; }
+.kcard select{ font-size:10.5px; padding:3px 5px; }
+
+/* ---- table ---- */
+.table-wrap{ overflow-x:auto; }
+
+/* ---- estoque agrupado por modelo ---- */
+.group-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:10px; overflow:hidden; }
+.group-summary{ list-style:none; cursor:pointer; padding:13px 16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.group-summary::-webkit-details-marker{ display:none; }
+.group-summary::before{ content:'▸'; color:var(--muted); font-size:11px; width:10px; transition:transform .15s; }
+details[open] > .group-summary::before{ transform:rotate(90deg); }
+.group-title{ font-weight:600; font-size:13.5px; min-width:190px; }
+.group-title .cod{ color:var(--muted); font-weight:400; font-size:11px; font-family:'IBM Plex Mono',monospace; }
+.group-count{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--navy); background:var(--navy-pale); padding:2px 8px; border-radius:10px; }
+.group-badges{ display:flex; gap:6px; flex-wrap:wrap; flex:1; }
+.group-badge{ font-size:10.5px; padding:2px 8px; border-radius:10px; background:var(--navy-pale); color:var(--navy); font-weight:600; white-space:nowrap; }
+.group-add{ margin-left:auto; }
+.unit-table{ width:100%; border-collapse:collapse; font-size:12.5px; border-top:1px solid var(--border); }
+.unit-table th{ text-align:left; font-size:10.5px; color:var(--muted); font-weight:600; padding:7px 14px; background:#FAFBFD; white-space:nowrap; }
+.unit-table td{ padding:7px 14px; border-top:1px solid var(--border); white-space:nowrap; }
+.unit-table select{ font-size:11.5px; padding:4px 6px; }
+
+.active-toggle{ background:var(--navy); color:#fff; border-color:var(--navy); }
+.lote-bar{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  background:var(--navy); color:#fff; padding:10px 14px; border-radius:var(--radius); margin-bottom:12px;
+}
+.lote-bar input{ font-size:12.5px; }
+.lote-bar .btn-ghost{ color:#C7D6F0; }
+.lote-bar .btn-ghost:hover{ color:#fff; }
+.lote-price-strip{
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  padding:10px 16px; background:#FAFBFD; border-top:1px solid var(--border);
+}
+.lote-price-strip label{ font-size:11.5px; color:var(--muted); font-weight:500; }
+
+.lote-delete-btn{
+  background:none; border:none; cursor:pointer; font-size:13px; line-height:1;
+  opacity:.2; padding:5px 7px; border-radius:3px; transition:opacity .15s, background .15s;
+}
+.group-card:hover .lote-delete-btn{ opacity:.55; }
+.lote-delete-btn:hover{ opacity:1 !important; background:var(--danger-bg); }
+table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+th{ text-align:left; font-size:10.5px; color:var(--muted); font-weight:600; text-transform:none; padding:8px 10px; border-bottom:2px solid var(--border); white-space:nowrap; }
+td{ padding:7px 10px; border-bottom:1px solid var(--border); white-space:nowrap; }
+tr:hover td{ background:#FAFBFD; }
+.tag{ display:inline-block; padding:2px 7px; border-radius:10px; font-size:10.5px; font-weight:600; }
+.tag-A{ background:var(--success-bg); color:var(--success); }
+.tag-B{ background:var(--warn-bg); color:var(--warn); }
+.tag-C{ background:var(--danger-bg); color:var(--danger); }
+.status-pill{ font-size:10.5px; padding:2px 8px; border-radius:10px; background:var(--navy-pale); color:var(--navy); font-weight:600; }
+.status-PAGA, .status-ENTREGUE{ background:var(--success-bg); color:var(--success); }
+.status-NEGOCIACAO{ background:var(--warn-bg); color:var(--warn); }
+
+.empty-state{ text-align:center; padding:40px 20px; color:var(--muted); }
+.empty-state p{ font-size:12.5px; margin-top:4px; }
+
+/* ---- modal ---- */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(10,20,45,.45); display:none;
+  align-items:flex-start; justify-content:center; padding:40px 20px; z-index:50; overflow-y:auto;
+}
+.modal-overlay.open{ display:flex; }
+.modal{ background:#fff; border-radius:var(--radius); width:100%; max-width:560px; padding:22px; }
+.modal h2{ font-size:15px; font-weight:600; margin-bottom:16px; }
+.modal-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
+.modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+
+/* ---- reference tables (price policy) ---- */
+.ref-table{ width:100%; border-collapse:collapse; font-size:12.5px; margin-top:8px; }
+.ref-table th{ background:var(--navy); color:#fff; font-size:10.5px; padding:8px 10px; text-align:left; }
+.ref-table td{ padding:8px 10px; border-bottom:1px solid var(--border); }
+.ref-table tr:last-child td{ border-bottom:none; }
+
+.pipeline{ display:flex; align-items:center; flex-wrap:wrap; gap:0; margin-top:10px; }
+.pipeline-step{ background:var(--navy-pale); color:var(--navy); padding:7px 12px; border-radius:var(--radius); font-size:11px; font-weight:600; font-family:'IBM Plex Mono',monospace; }
+.pipeline-arrow{ color:var(--muted); padding:0 6px; font-size:12px; }
+
+/* ---- checklist ---- */
+.day-row{ display:flex; gap:14px; padding:13px 0; border-bottom:1px solid var(--border); align-items:flex-start; }
+.day-row:last-child{ border-bottom:none; }
+.day-check{ width:20px; height:20px; flex-shrink:0; margin-top:1px; accent-color:var(--navy); cursor:pointer; }
+.day-label{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--yellow-deep); font-weight:600; margin-bottom:2px; }
+.day-text{ font-size:13px; }
+.day-text.done{ color:var(--muted); text-decoration:line-through; }
+.progress-track{ background:var(--navy-pale); border-radius:20px; height:8px; overflow:hidden; margin:6px 0 18px; }
+.progress-fill{ background:var(--yellow); height:100%; border-radius:20px; transition:width .3s; }
+
+.two-col{ display:grid; grid-template-columns:1.15fr .85fr; gap:16px; }
+@media (max-width:900px){ .two-col{ grid-template-columns:1fr; } }
+
+.hint{ font-size:11px; color:var(--muted); margin-top:8px; }
+.filters{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.filters select{ width:auto; }
+
+@media (max-width:760px){
+  .app{ flex-direction:column; }
+  .sidebar{ width:100%; flex-direction:row; align-items:center; overflow-x:auto; padding:12px; gap:14px;}
+  .sidebar-foot{ display:none; }
+  .nav{ flex-direction:row; }
+  .main{ padding:20px; }
+  .kpi-grid{ grid-template-columns:repeat(2,1fr); }
+  .kanban{ grid-template-columns:repeat(7,150px); }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">F</div>
+      <div>
+        <div class="brand-text">FLEXPRINT</div>
+        <div class="brand-sub">Desmobilização do Parque</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-tab="overview"><span class="nav-num">01</span> Visão geral</button>
+      <button class="nav-item" data-tab="funil"><span class="nav-num">02</span> Funil comercial</button>
+      <button class="nav-item" data-tab="estoque"><span class="nav-num">03</span> Estoque</button>
+      <button class="nav-item" data-tab="canal"><span class="nav-num">04</span> Canal de venda</button>
+      <button class="nav-item" data-tab="preco"><span class="nav-num">05</span> Política de preço</button>
+      <button class="nav-item" data-tab="plano"><span class="nav-num">06</span> Plano de implantação</button>
+    </nav>
+    <div class="sidebar-foot">
+      Fase 2 — Eficiência Operacional<br>e Padronização do Parque.<br><br>
+      Dados compartilhados: qualquer pessoa com o link vê e edita a mesma base.
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- ===== OVERVIEW ===== -->
+    <div class="tab-panel" id="tab-overview">
+      <div class="page-head">
+        <h1>Visão geral da operação</h1>
+        <p>Acompanhamento da venda dos equipamentos retirados na padronização do parque. Objetivo: maior volume possível, no menor prazo, preservando preço e margem.</p>
+      </div>
+
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="section-label"><span class="n">→</span> Funil comercial — distribuição atual</div>
+        <div class="funnel-bar" id="funnelBar"></div>
+        <div class="funnel-legend" id="funnelLegend"></div>
+      </div>
+
+      <div class="two-col" style="margin-bottom:16px;">
+        <div class="card">
+          <div class="section-label"><span class="n">→</span> Liquidez por modelo (mais vendidos)</div>
+          <div class="table-wrap">
+            <table id="liquidezTable"><tbody></tbody></table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-label"><span class="n">→</span> Sozinha vs. em lote (unidades vendidas)</div>
+          <div id="rotaSplit"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-label"><span class="n">→</span> Comissão sobre as vendas</div>
+        <p class="hint" style="margin:0 0 12px;">A faixa é calculada sozinha comparando o preço vendido de cada máquina com o preço ideal e o preço mínimo cadastrados nela. Vendeu perto do valor cheio, comissão maior; vendeu perto do piso, comissão menor — assim quantidade e qualidade da venda ficam alinhadas.</p>
+        <div style="display:flex; gap:18px; flex-wrap:wrap; margin-bottom:16px;">
+          <div style="min-width:150px;">
+            <label>Valor cheio (preço ideal)</label>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <input type="number" id="rate_cheio" min="0" max="100" step="0.5" value="20" onchange="updateCommissionRates()" style="width:70px;">
+              <span class="mono" style="color:var(--muted);">%</span>
+            </div>
+          </div>
+          <div style="min-width:150px;">
+            <label>Valor meio (entre ideal e mínimo)</label>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <input type="number" id="rate_meio" min="0" max="100" step="0.5" value="15" onchange="updateCommissionRates()" style="width:70px;">
+              <span class="mono" style="color:var(--muted);">%</span>
+            </div>
+          </div>
+          <div style="min-width:150px;">
+            <label>Valor mínimo (piso)</label>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <input type="number" id="rate_minimo" min="0" max="100" step="0.5" value="10" onchange="updateCommissionRates()" style="width:70px;">
+              <span class="mono" style="color:var(--muted);">%</span>
+            </div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="comissaoTable">
+            <thead><tr>
+              <th>Máquina</th><th>Qtd. na venda</th><th>Preço vendido (un.)</th><th>Total vendido</th><th>Faixa</th><th>% comissão</th><th>Comissão</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="empty-state" id="comissaoEmpty" style="display:none; padding:24px 12px;">
+          <p>Nenhuma venda com preço registrado ainda. Marque uma máquina como Paga ou Entregue e informe o preço realizado para ela aparecer aqui.</p>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:28px; margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">
+          <div>
+            <div class="kpi-label" style="text-align:right;">Total vendido</div>
+            <div class="kpi-value mono" style="text-align:right; font-size:19px;" id="comissaoTotalVendido">R$ 0,00</div>
+          </div>
+          <div>
+            <div class="kpi-label" style="text-align:right;">Comissão total</div>
+            <div class="kpi-value mono" style="text-align:right; font-size:19px; color:var(--success);" id="comissaoTotal">R$ 0,00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FUNIL ===== -->
+    <div class="tab-panel" id="tab-funil" style="display:none;">
+      <div class="page-head">
+        <h1>Funil comercial</h1>
+        <p>DISPONÍVEL → ANUNCIADA → LEAD → NEGOCIAÇÃO → RESERVADA → PAGA → ENTREGUE. Mude a etapa direto no card.</p>
+      </div>
+      <div class="kanban" id="kanban"></div>
+    </div>
+
+    <!-- ===== ESTOQUE ===== -->
+    <div class="tab-panel" id="tab-estoque" style="display:none;">
+      <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h1>Inventário comercial</h1>
+          <p>Cada máquina física é uma linha própria, com sua etapa e seu preço — mesmo quando vários modelos iguais entram juntos, cada unidade anda no funil no seu ritmo.</p>
+        </div>
+        <button class="btn btn-yellow" onclick="openModal()">+ Adicionar equipamento</button>
+      </div>
+
+      <div class="filters">
+        <select id="filterClassificacao" onchange="renderEstoque()">
+          <option value="">Classificação: todas</option>
+          <option value="1">1 — Perfeita</option>
+          <option value="2">2 — Falta peça</option>
+          <option value="3">3 — Não funciona</option>
+        </select>
+        <select id="filterRota" onchange="renderEstoque()">
+          <option value="">Modo: todos</option>
+          <option value="Sozinha">Sozinha</option>
+          <option value="Lote">Em lote</option>
+        </select>
+        <select id="filterCanal" onchange="renderEstoque()">
+          <option value="">Canal: todos</option>
+          <option value="Marketplace">Marketplace</option>
+          <option value="Prospecção ativa">Prospecção ativa</option>
+        </select>
+        <select id="filterStatus" onchange="renderEstoque()">
+          <option value="">Todas as etapas</option>
+        </select>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
+        <div style="display:flex; gap:4px;">
+          <button class="btn btn-sm" id="btnGroupModelo" onclick="setGroupBy('modelo')">Por modelo</button>
+          <button class="btn btn-sm" id="btnGroupLote" onclick="setGroupBy('lote')">Por lote de venda</button>
+        </div>
+        <p class="hint" style="margin:0;">Marque as caixinhas das máquinas e agrupe em um lote de venda ali embaixo ↓</p>
+      </div>
+
+      <div id="loteActionBar" class="lote-bar" style="display:none;">
+        <span id="loteSelCount" class="mono"></span>
+        <input type="text" id="loteNomeInput" placeholder='Nome do lote (ex: "Outsourcing Fênix")' style="max-width:280px;">
+        <button class="btn btn-yellow btn-sm" onclick="groupIntoLote()">Agrupar em lote</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearSelection()">Cancelar seleção</button>
+      </div>
+
+      <div id="estoqueGroups"></div>
+      <div class="empty-state" id="estoqueEmpty" style="display:none;">
+        <p>Nenhum equipamento cadastrado ainda. Clique em "Adicionar equipamento" para começar o inventário.</p>
+      </div>
+    </div>
+
+    <!-- ===== CANAL DE VENDA ===== -->
+    <div class="tab-panel" id="tab-canal" style="display:none;">
+      <div class="page-head">
+        <h1>Canal de venda</h1>
+        <p>Cada máquina tem um canal recomendado (onde procurar comprador) e um modo de venda (sozinha ou em lote). Isso organiza quem faz o quê: anúncio ou prospecção ativa.</p>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="section-label"><span class="n">→</span> Marketplace <span class="group-count" id="countMarketplace" style="margin-left:4px;">0</span></div>
+          <p class="hint" style="margin:0 0 10px;">Modelos com demanda ativa documentada em Mercado Livre / OLX — anúncio bem-feito já resolve.</p>
+          <ul style="list-style:none; display:flex; flex-direction:column; gap:6px; margin-bottom:14px;" id="listMarketplace"></ul>
+          <div class="section-label" style="margin-top:6px;"><span class="n">✓</span> Checklist do canal</div>
+          <ul style="padding-left:18px; font-size:12.5px; color:var(--muted); display:flex; flex-direction:column; gap:5px;">
+            <li>Fotos padronizadas (frente, painel, contador de páginas, bandejas).</li>
+            <li>Anúncio com procedência: "vem de locadora, manutenção preventiva registrada".</li>
+            <li>Publicar em Mercado Livre e OLX ao mesmo tempo, mesmo texto-base.</li>
+            <li>Responder rápido — esse comprador compara vários anúncios ao mesmo tempo.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="section-label"><span class="n">→</span> Prospecção ativa <span class="group-count" id="countProspeccao" style="margin-left:4px;">0</span></div>
+          <p class="hint" style="margin:0 0 10px;">Modelos de nicho, alto valor ou mercado escasso — o comprador certo não está navegando marketplace, tem que ser encontrado.</p>
+          <ul style="list-style:none; display:flex; flex-direction:column; gap:6px; margin-bottom:14px;" id="listProspeccao"></ul>
+          <div class="section-label" style="margin-top:6px;"><span class="n">✓</span> Checklist do canal</div>
+          <ul style="padding-left:18px; font-size:12.5px; color:var(--muted); display:flex; flex-direction:column; gap:5px;">
+            <li>Montar lista de pequenas locadoras/empresas de outsourcing e revendas especializadas da região.</li>
+            <li>Para nichos (duplicador, tinta sólida, A3 grande porte): mapear esse público específico (escolas, gráficas, igrejas) em vez de anúncio genérico.</li>
+            <li>Contato direto — telefone/WhatsApp/e-mail — não depender de quem "encontra" o anúncio.</li>
+            <li>Itens de baixo valor e mercado raso: oferecer junto (lote) para acelerar o giro.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="section-label"><span class="n">→</span> Modo de venda — sozinha ou em lote</div>
+        <div id="modoBreakdown"></div>
+      </div>
+    </div>
+
+    <!-- ===== PREÇO ===== -->
+    <div class="tab-panel" id="tab-preco" style="display:none;">
+      <div class="page-head">
+        <h1>Política de preço</h1>
+        <p>Três faixas autorizadas por modelo, para dar autonomia comercial sem depender de aprovação a cada negociação.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="section-label"><span class="n">→</span> Faixas de preço</div>
+        <table class="ref-table">
+          <thead><tr><th>Faixa</th><th>Função</th><th>Regra</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag tag-A">A — Preço cheio</span></td><td>Maximizar margem</td><td>Preço anunciado</td></tr>
+            <tr><td><span class="tag tag-B">B — Negociação</span></td><td>Facilitar fechamento</td><td>Autonomia comercial</td></tr>
+            <tr><td><span class="tag tag-C">C — Piso</span></td><td>Acelerar giro</td><td>Limite mínimo definido</td></tr>
+          </tbody>
+        </table>
+        <p class="hint">Defina os três valores de cada modelo na ficha do equipamento, na aba Estoque.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="section-label"><span class="n">→</span> Classificação física → meta de preço</div>
+        <table class="ref-table">
+          <thead><tr><th>Classificação</th><th>Estado da máquina</th><th>Meta de preço</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag tag-A">1 — Perfeita</span></td><td>Funcionamento perfeito</td><td>Preço cheio — em lote, vale o desconto por unidade</td></tr>
+            <tr><td><span class="tag tag-B">2 — Falta peça</span></td><td>Falta fusor, cilindro ou toner (fora isso, funciona)</td><td>Preço de negociação</td></tr>
+            <tr><td><span class="tag tag-C">3 — Não funciona</span></td><td>Não funciona</td><td>Preço de piso — canais como ferro-velho/desmanche</td></tr>
+          </tbody>
+        </table>
+        <p class="hint">A classificação de cada máquina fica na aba Estoque e já define a meta de preço mostrada ali (badge "Meta"). Assim que você registrar o preço vendido, a faixa real substitui a meta.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="section-label"><span class="n">→</span> Estratégia por tempo de estoque</div>
+        <table class="ref-table">
+          <thead><tr><th>Período</th><th>Prioridade</th><th>Ação</th></tr></thead>
+          <tbody>
+            <tr><td>Dias 1–15</td><td>Margem</td><td>Preço desejado, foco em varejo</td></tr>
+            <tr><td>Dias 16–30</td><td>Margem + giro</td><td>Negociação e desconto por quantidade</td></tr>
+            <tr><td>Dias 31–45</td><td>Giro</td><td>Preço mais agressivo, expansão para revendedores</td></tr>
+            <tr><td>Dias 46–60</td><td>Velocidade</td><td>Priorizar fechamento e lotes</td></tr>
+            <tr><td>Acima de 60 dias</td><td>Desmobilização</td><td>Atacado / lote para retirar estoque</td></tr>
+          </tbody>
+        </table>
+        <p class="hint">O painel calcula automaticamente os dias em estoque de cada item na aba Estoque — use como sinal para revisar o preço.</p>
+      </div>
+
+      <div class="card">
+        <div class="section-label"><span class="n">→</span> Linha de produção do equipamento</div>
+        <div class="pipeline">
+          <span class="pipeline-step">ESTOQUE</span><span class="pipeline-arrow">→</span>
+          <span class="pipeline-step">TRIAGEM</span><span class="pipeline-arrow">→</span>
+          <span class="pipeline-step">MANUTENÇÃO</span><span class="pipeline-arrow">→</span>
+          <span class="pipeline-step">LIMPEZA</span><span class="pipeline-arrow">→</span>
+          <span class="pipeline-step">FOTOS</span><span class="pipeline-arrow">→</span>
+          <span class="pipeline-step">ANÚNCIO</span><span class="pipeline-arrow">→</span>
+          <span class="pipeline-step">VENDA</span><span class="pipeline-arrow">→</span>
+          <span class="pipeline-step">ENTREGA</span>
+        </div>
+        <p class="hint">A máquina só entra no estoque comercial (funil) quando estiver pronta para ser vendida.</p>
+      </div>
+    </div>
+
+    <!-- ===== PLANO ===== -->
+    <div class="tab-panel" id="tab-plano" style="display:none;">
+      <div class="page-head">
+        <h1>Plano de implantação</h1>
+        <p>Marque as entregas conforme forem concluídas.</p>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="planoProgress" style="width:0%;"></div></div>
+      <div class="card" id="planoList"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== MODAL: novo equipamento ===== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Adicionar equipamento</h2>
+    <div class="modal-grid">
+      <div class="field"><label>Código interno</label><input id="f_codigo" placeholder="EQ-001"></div>
+      <div class="field" id="wrap_qtd"><label id="label_qtd">Quantidade de unidades iguais</label><input id="f_qtd" type="number" min="1" value="1"></div>
+      <div class="field"><label>Marca</label><input id="f_marca" placeholder="Ricoh"></div>
+      <div class="field"><label>Modelo</label><input id="f_modelo" placeholder="MP 2014"></div>
+      <div class="field"><label>Classificação</label>
+        <select id="f_condicao">
+          <option value="1">1 — Perfeito funcionamento</option>
+          <option value="2">2 — Falta fusor, cilindro ou toner</option>
+          <option value="3">3 — Não funciona</option>
+        </select>
+      </div>
+      <div class="field"><label>Preço ideal (R$)</label><input id="f_precoIdeal" type="number" min="0"></div>
+      <div class="field"><label>Preço mínimo (R$)</label><input id="f_precoMinimo" type="number" min="0"></div>
+      <div class="field"><label>Modo de venda</label>
+        <select id="f_rota"><option value="Sozinha">Sozinha</option><option value="Lote">Em lote</option></select>
+      </div>
+      <div class="field"><label>Canal de venda</label>
+        <select id="f_canal"><option value="Marketplace">Marketplace</option><option value="Prospecção ativa">Prospecção ativa</option></select>
+      </div>
+      <div class="field"><label>Etapa no funil</label>
+        <select id="f_status">
+          <option value="DISPONIVEL">Disponível</option><option value="ANUNCIADA">Anunciada</option>
+          <option value="LEAD">Lead</option><option value="NEGOCIACAO">Negociação</option>
+          <option value="RESERVADA">Reservada</option><option value="PAGA">Paga</option><option value="ENTREGUE">Entregue</option>
+        </select>
+      </div>
+      <div class="field"><label>Data disponível desde</label><input id="f_dataDisponivel" type="date"></div>
+      <div class="field" id="wrap_dataVenda" style="display:none;"><label>Data da venda</label><input id="f_dataVenda" type="date"></div>
+      <div class="field" id="wrap_precoRealizado" style="display:none;"><label>Preço realizado (R$)</label><input id="f_precoRealizado" type="number" min="0"></div>
+      <div class="field"><label>Número de série</label><input id="f_numeroSerie" placeholder="Ex: A1B2C3456"></div>
+      <div class="field"><label>Contagem (páginas)</label><input id="f_contagem" type="number" min="0" placeholder="Ex: 128340"></div>
+    </div>
+    <p class="hint" id="qtd_hint" style="margin-top:-6px; margin-bottom:12px;">Cada unidade vira uma linha própria no estoque, com etapa e preço independentes.</p>
+    <div class="field"><label>Observações</label><textarea id="f_obs" rows="2" placeholder="Contador de páginas, itens inclusos, marcas estéticas..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEquipamento()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const STAGES = [
+  {id:'DISPONIVEL', label:'Disponível', color:'#8A97AD'},
+  {id:'ANUNCIADA', label:'Anunciada', color:'#1B4B8F'},
+  {id:'LEAD', label:'Lead', color:'#3D6FC4'},
+  {id:'NEGOCIACAO', label:'Negociação', color:'#D69A00'},
+  {id:'RESERVADA', label:'Reservada', color:'#B4740B'},
+  {id:'PAGA', label:'Paga', color:'#3E9E71'},
+  {id:'ENTREGUE', label:'Entregue', color:'#16794F'},
+];
+const stageLabel = id => (STAGES.find(s=>s.id===id)||{}).label || id;
+const stageColor = id => (STAGES.find(s=>s.id===id)||{}).color || '#999';
+
+const PLANO_DIAS = [
+  {dia:'Passo 1', texto:'Levantar modelos, quantidades e disponibilidade.'},
+  {dia:'Passo 2', texto:'Pesquisar mercado e definir preços ideal, negociação e piso.'},
+  {dia:'Passo 3', texto:'Definir padrão de revisão, limpeza, fotos e cadastro.'},
+  {dia:'Passo 4', texto:'Criar anúncios-base, estoque central e funil comercial.'},
+  {dia:'Passo 5', texto:'Publicar primeiro lote e iniciar prospecção de compradores e revendedores.'},
+];
+
+// Base de estoque a partir da pesquisa de mercado (cotações de 04–13/09/2026).
+// "rota" = modo de venda (Sozinha / Lote) e "canal" = canal de venda recomendado
+// (Marketplace / Prospecção ativa), pontuados a partir da escassez de comparáveis,
+// do valor por unidade e do perfil do comprador de cada modelo.
+const SEED_EQUIPAMENTOS = [
+  { codigo:'RIC-M320F', marca:'Ricoh', modelo:'M320F', qtd:1, classificacao:'1',
+    precoIdeal:1990, precoMinimo:1500, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Modelo atual, mercado ativo (Mercado Livre e lojas especializadas). Ticket médio com boa liquidez — vende bem sozinha em anúncio de marketplace.' },
+  { codigo:'RIC-SP377', marca:'Ricoh', modelo:'SP 377SFNwX', qtd:1, classificacao:'1',
+    precoIdeal:1590, precoMinimo:1099, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Multifuncional Wi-Fi atual, boa demanda documentada, mesmo perfil da M320F: compensa vender individualmente no marketplace.' },
+  { codigo:'HP-M428FDW', marca:'HP', modelo:'LaserJet Pro M428FDW', qtd:1, classificacao:'1',
+    precoIdeal:2690, precoMinimo:2799, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Já em fase de substituição pela HP 4103fdw — vender logo, enquanto ainda há demanda forte e comparáveis no marketplace.' },
+  { codigo:'KM-BC454', marca:'Konica Minolta', modelo:'Bizhub C454 (A3 colorida)', qtd:1, classificacao:'1',
+    precoIdeal:11500, precoMinimo:8900, rota:'Sozinha', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Copiadora A3 colorida de alto valor (ticket acima de R$10 mil); comprador típico é empresa/gráfica que decide por negociação direta, não por marketplace. Confirmar se é o C454 (colorido) ou o 454e (mono).' },
+  { codigo:'HP-M602', marca:'HP', modelo:'LaserJet Enterprise 600 M602', qtd:1, classificacao:'1',
+    precoIdeal:1450, precoMinimo:1250, rota:'Lote', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Workhorse robusto, mas com pouquíssimos anúncios no marketplace — melhor oferecer em lote direto a pequenas locadoras/outsourcing que compram usados em quantidade.' },
+  { codigo:'XER-3325', marca:'Xerox', modelo:'WorkCentre 3325/DNI', qtd:1, classificacao:'2',
+    precoIdeal:1250, precoMinimo:700, rota:'Lote', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Mercado quase só de peças e toner, pouquíssimos equipamentos completos à venda — melhor prospecção ativa oferecendo em lote a revendedores/outsourcing do que apostar em anúncio individual.' },
+  { codigo:'KYO-M5526', marca:'Kyocera', modelo:'ECOSYS M5526cdw', qtd:1, classificacao:'1',
+    precoIdeal:1950, precoMinimo:1690, rota:'Lote', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Sem oferta direta no marketplace (só 1 comparável encontrado) — melhor prospecção ativa em lote junto a quem já usa a linha ECOSYS.' },
+  { codigo:'SAM-SCX5637', marca:'Samsung', modelo:'SCX-5637FR', qtd:1, classificacao:'1',
+    precoIdeal:1500, precoMinimo:700, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Apesar de a Samsung ter saído do mercado de impressoras, a faixa de preço encontrada é saudável — ainda compensa vender sozinha no marketplace.' },
+  { codigo:'BRO-L5652', marca:'Brother', modelo:'DCP-L5652DN', qtd:1, classificacao:'1',
+    precoIdeal:2100, precoMinimo:800, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Modelo atual, ainda vendido novo, com boa demanda de reposição — um dos melhores candidatos a venda individual no marketplace.' },
+  { codigo:'RIC-DX2330', marca:'Ricoh', modelo:'Priport DX 2330 (duplicador digital)', qtd:1, classificacao:'1',
+    precoIdeal:3100, precoMinimo:3200, rota:'Sozinha', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Categoria de nicho (duplicador digital, comum em escolas/igrejas/sindicatos) — o comprador certo raramente navega marketplace genérico; prospectar esse público específico, vendendo sozinha (lote diluiria a atenção). Confirmar se é este o equipamento locado.' },
+  { codigo:'SAM-M4080', marca:'Samsung', modelo:'SL-M4080FX (ProXpress)', qtd:1, classificacao:'1',
+    precoIdeal:2500, precoMinimo:1699, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Ainda vendida nova, bem documentada no Mercado Livre — compensa vender individualmente. Preço de usado varia com o contador de páginas, checar antes de fechar.' },
+  { codigo:'BRO-L2740', marca:'Brother', modelo:'MFC-L2740DW', qtd:1, classificacao:'1',
+    precoIdeal:1950, precoMinimo:1580, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Já substituída pela linha L2540DW, mercado mais restrito, mas com boa presença de anúncios comparáveis — vende bem sozinha no marketplace.' },
+  { codigo:'XER-4118', marca:'Xerox', modelo:'WorkCentre 4118 (A3)', qtd:1, classificacao:'2',
+    precoIdeal:280, precoMinimo:200, rota:'Lote', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Valor residual muito baixo e mercado de marketplace escasso — não compensa anúncio individual; melhor prospecção ativa oferecendo em lote a revendedores/outsourcing ou sucateiros.' },
+  { codigo:'BRO-HL5452', marca:'Brother', modelo:'HL-5452DN', qtd:1, classificacao:'1',
+    precoIdeal:590, precoMinimo:480, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Impressora função única robusta, ainda bem aceita no mercado corporativo, com boa liquidez em ML e OLX — ticket que justifica anúncio individual.' },
+  { codigo:'BRO-HL5472', marca:'Brother', modelo:'HL-5472DW', qtd:1, classificacao:'1',
+    precoIdeal:830, precoMinimo:650, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Sucessora da HL-5452DN com Wi-Fi, mesmo perfil de boa liquidez — vende bem sozinha.' },
+  { codigo:'XER-CQ8570', marca:'Xerox', modelo:'ColorQube 8570', qtd:1, classificacao:'1',
+    precoIdeal:890, precoMinimo:850, rota:'Sozinha', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Tecnologia de tinta sólida pouco comum no Brasil, oferta praticamente inexistente — precisa de um comprador que já conhece a tecnologia; prospectar esse público específico, vendendo sozinha. Confirmar se será entregue com bastões de cera.' },
+  { codigo:'BRO-9460', marca:'Brother', modelo:'MFC-9460CDN', qtd:1, classificacao:'2',
+    precoIdeal:780, precoMinimo:280, rota:'Lote', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Modelo antigo sem oferta no Mercado Livre e poucos achados na OLX — mercado raso; melhor prospecção ativa oferecendo em lote a revendedores/outsourcing.' },
+  { codigo:'RIC-MP5002', marca:'Ricoh', modelo:'Aficio MP 5002 (A3, 50ppm)', qtd:1, classificacao:'1',
+    precoIdeal:6200, precoMinimo:3600, rota:'Sozinha', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Copiadora de grande porte e ticket alto, sem giro em marketplace de consumidor — oferecer direto a escritórios/gráficas/revendas especializadas.' },
+  { codigo:'RIC-MP4002', marca:'Ricoh', modelo:'Aficio MP 4002 (A3, 40ppm)', qtd:1, classificacao:'1',
+    precoIdeal:5200, precoMinimo:3200, rota:'Sozinha', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Mesmo perfil da MP 5002: porte grande, ticket alto, sem giro em marketplace — prospecção direta a compradores corporativos.' },
+  { codigo:'BRO-8080DN', marca:'Brother', modelo:'DCP-8080DN', qtd:1, classificacao:'1',
+    precoIdeal:980, precoMinimo:350, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Boa liquidez de usados, com revendas especializadas e OLX ativos na faixa de preço — compensa venda individual no marketplace.' },
+  { codigo:'BRO-8480DN', marca:'Brother', modelo:'MFC-8480DN', qtd:1, classificacao:'1',
+    precoIdeal:700, precoMinimo:300, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Boa quantidade de anúncios ativos na OLX e revenda com garantia como referência — vende bem sozinha no marketplace.' },
+  { codigo:'XER-VLC405', marca:'Xerox', modelo:'VersaLink C405', qtd:1, classificacao:'1',
+    precoIdeal:1350, precoMinimo:1200, rota:'Sozinha', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Mercado escasso — só 1 anúncio completo encontrado no Brasil inteiro. Melhor prospectar diretamente pequenas locadoras/outsourcing ou escritórios; vender sozinha, já que agrupar não traz vantagem sendo praticamente a única oferta do modelo.' },
+  { codigo:'XER-VLC400', marca:'Xerox', modelo:'VersaLink C400 (função única)', qtd:1, classificacao:'1',
+    precoIdeal:950, precoMinimo:900, rota:'Sozinha', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Nenhuma unidade usada completa encontrada (só a irmã multifuncional C405 serviu de referência) — mercado ainda mais escasso que o da C405. Prospectar diretamente, vendendo sozinha.' },
+  { codigo:'BRO-8085DN', marca:'Brother', modelo:'DCP-8085DN', qtd:1, classificacao:'1',
+    precoIdeal:870, precoMinimo:850, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Boa concordância de preço entre Mercado Livre e OLX — mercado ativo o suficiente para vender individualmente.' },
+  { codigo:'BRO-8890DW', marca:'Brother', modelo:'MFC-8890DW', qtd:1, classificacao:'1',
+    precoIdeal:850, precoMinimo:550, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Boa quantidade de anúncios ativos em ML e OLX, com preços variando conforme estado/cor — mercado líquido o suficiente para venda individual.' },
+  { codigo:'RIC-C431DN', marca:'Ricoh', modelo:'Aficio SP C431DN', qtd:1, classificacao:'1',
+    precoIdeal:3900, precoMinimo:4902.45, rota:'Sozinha', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Impressora colorida de padrão profissional com toner original caro; mercado de usados praticamente inexistente no marketplace (só achado via revenda especializada). Ticket alto — prospectar diretamente gráficas/escritórios, vendendo sozinha.' },
+  { codigo:'RIC-C242SF', marca:'Ricoh', modelo:'Aficio SP C242SF', qtd:1, classificacao:'2',
+    precoIdeal:500, precoMinimo:400, rota:'Lote', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'ESTIMATIVA DE BAIXA CONFIANÇA — mercado brasileiro praticamente zerado, sem preço confirmado. Ticket baixo — melhor oferecer em lote a pequenas locadoras/outsourcing do que apostar em anúncio individual. Confirmar se o toner original ainda está disponível antes de anunciar.' },
+  { codigo:'EPS-PP100', marca:'Epson', modelo:'Discproducer PP-100 (duplicador de disco — categoria à parte)', qtd:1, classificacao:'1',
+    precoIdeal:1800, precoMinimo:1200, rota:'Sozinha', canal:'Prospecção ativa', status:'DISPONIVEL',
+    obs:'Categoria diferente — não é impressora de escritório, é um publicador/duplicador robótico de CD/DVD/Blu-ray, nicho de mídia/AV. Comprador certo (produtora de vídeo, empresa de arquivamento) raramente procura no marketplace genérico — prospectar esse público, vendendo sozinha. Confirmar estado das gravadoras e disponibilidade de cartuchos originais antes de anunciar.' },
+  { codigo:'EPS-L396', marca:'Epson', modelo:'EcoTank L396', qtd:1, classificacao:'1',
+    precoIdeal:680, precoMinimo:550, rota:'Sozinha', canal:'Marketplace', status:'DISPONIVEL',
+    obs:'Ticket baixo, mas com liquidez real em ML e OLX, inclusive procura por peças — modelo de consumo popular que vende bem sozinha no marketplace.' },
+];
+
+let equipamentos = [];
+let planoState = {};
+let commissionRates = {cheio:20, meio:15, minimo:10};
+let editingId = null;
+let expandedGroups = new Set();
+let groupBy = 'modelo';
+let selectedIds = new Set();
+
+const fmtBRL = v => (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+const todayISO = () => new Date().toISOString().slice(0,10);
+const daysBetween = (a,b) => Math.max(0, Math.round((new Date(b) - new Date(a)) / 86400000));
+const uid = () => 'eq_' + Math.random().toString(36).slice(2,10);
+
+function baseCodigo(codigo){ return codigo.replace(/#\d+$/,''); }
+function migrateLegacyFields(e){
+  if(e.rota === 'Varejo') e.rota = 'Sozinha';
+  if(e.rota === 'Atacado') e.rota = 'Lote';
+  if(e.canal === 'Marketplaces') e.canal = 'Marketplace';
+  if(e.canal === 'Parceiros' || e.canal === 'Revendedores / outsourcing' || e.canal === 'Base própria') e.canal = 'Prospecção ativa';
+  if(e.condicao && !e.classificacao){
+    const map = {Excelente:'1', Boa:'1', Regular:'2'};
+    e.classificacao = map[e.condicao] || '1';
+    delete e.condicao;
+  }
+  if(!e.classificacao) e.classificacao = '1';
+  if(e.lote === undefined) e.lote = '';
+  if(e.precoLoteUnidade === undefined) e.precoLoteUnidade = 0;
+  if(e.numeroSerie === undefined) e.numeroSerie = '';
+  if(e.contagem === undefined) e.contagem = 0;
+  return e;
+}
+
+// --- Firebase: banco de dados compartilhado na nuvem ---
+const firebaseConfig = {
+  apiKey: "AIzaSyAAmFnr0r8Q0qqH2V5a56b9f0T-NnBJBqM",
+  authDomain: "painel---vendas-flex.firebaseapp.com",
+  projectId: "painel---vendas-flex",
+  storageBucket: "painel---vendas-flex.firebasestorage.app",
+  messagingSenderId: "886440518486",
+  appId: "1:886440518486:web:d5b69f8ff338275e986cf7"
+};
+firebase.initializeApp(firebaseConfig);
+const fbAuth = firebase.auth();
+const db = firebase.firestore();
+const docRef = db.collection('painel').doc('estado');
+
+async function ensureAuth(){
+  if(fbAuth.currentUser) return;
+  await fbAuth.signInAnonymously();
+  if(!fbAuth.currentUser){
+    await new Promise(resolve=>{
+      const unsub = fbAuth.onAuthStateChanged(u=>{ if(u){ unsub(); resolve(); } });
+    });
+  }
+}
+
+function aplicarCommissionRatesNosCampos(){
+  document.getElementById('rate_cheio').value = commissionRates.cheio;
+  document.getElementById('rate_meio').value = commissionRates.meio;
+  document.getElementById('rate_minimo').value = commissionRates.minimo;
+}
+
+function limparDuplicatasExatas(list){
+  // Duas máquinas nunca deveriam ter o mesmo código — se tiverem, é sinal de
+  // duplicata acidental (o bug do "-3325"/"-4118"/"-9460" gerava exatamente isso).
+  // Mantém a unidade mais "avançada" de cada grupo e descarta o resto.
+  const grupos = {};
+  list.forEach(e=>{ (grupos[e.codigo] = grupos[e.codigo] || []).push(e); });
+  let removidos = 0;
+  const resultado = [];
+  Object.values(grupos).forEach(grupo=>{
+    if(grupo.length === 1){ resultado.push(grupo[0]); return; }
+    grupo.sort((a,b)=>{
+      const stageA = STAGES.findIndex(s=>s.id===a.status);
+      const stageB = STAGES.findIndex(s=>s.id===b.status);
+      if(stageB !== stageA) return stageB - stageA; // etapa mais avançada primeiro
+      return (b.precoRealizado||0) - (a.precoRealizado||0);
+    });
+    resultado.push(grupo[0]);
+    removidos += grupo.length - 1;
+  });
+  return {resultado, removidos};
+}
+
+async function loadData(){
+  await ensureAuth();
+
+  try{
+    const snap = await docRef.get();
+    if(snap.exists){
+      const data = snap.data();
+      equipamentos = data.equipamentos || [];
+      planoState = data.planoState || {};
+      commissionRates = data.commissionRates || {cheio:20, meio:15, minimo:10};
+    }
+  }catch(err){
+    console.error('Falha ao carregar do Firebase:', err);
+  }
+
+  let mutatedOnLoad = false;
+  const dedupe = limparDuplicatasExatas(equipamentos);
+  equipamentos = dedupe.resultado;
+  if(dedupe.removidos > 0) mutatedOnLoad = true;
+
+  equipamentos = equipamentos.map(e=>{
+    const before = JSON.stringify(e);
+    const migrated = migrateLegacyFields(e);
+    if(JSON.stringify(migrated) !== before) mutatedOnLoad = true;
+    return migrated;
+  });
+
+  // Funde a pesquisa mais recente com o que já está salvo: modelos novos entram
+  // como unidades novas; modelos já existentes têm preço/canal/modo atualizados,
+  // mas etapa, datas, preço vendido, classificação e lote de cada unidade são
+  // preservados. Só salva de novo se algo realmente mudou.
+  const existentes = new Set(equipamentos.map(e=>baseCodigo(e.codigo)));
+  SEED_EQUIPAMENTOS.forEach(seed=>{
+    if(!existentes.has(seed.codigo)){
+      equipamentos.push({id:uid(), dataDisponivel:todayISO(), dataVenda:null, precoRealizado:0, lote:'', precoLoteUnidade:0, ...seed});
+      mutatedOnLoad = true;
+    } else {
+      equipamentos.forEach(e=>{
+        if(baseCodigo(e.codigo) === seed.codigo){
+          const mudou = e.marca!==seed.marca || e.modelo!==seed.modelo || e.precoIdeal!==seed.precoIdeal ||
+                        e.precoMinimo!==seed.precoMinimo || e.rota!==seed.rota || e.canal!==seed.canal || e.obs!==seed.obs;
+          if(mudou){
+            e.marca = seed.marca; e.modelo = seed.modelo;
+            e.precoIdeal = seed.precoIdeal; e.precoMinimo = seed.precoMinimo;
+            e.rota = seed.rota; e.canal = seed.canal; e.obs = seed.obs;
+            mutatedOnLoad = true;
+          }
+        }
+      });
+    }
+  });
+
+  aplicarCommissionRatesNosCampos();
+  renderAll();
+
+  if(mutatedOnLoad) persistState();
+
+  // Sincronização em tempo real: quando sua parceira mexe em outro navegador,
+  // esta tela atualiza sozinha, sem precisar recarregar a página.
+  docRef.onSnapshot(snap=>{
+    if(snap.metadata.hasPendingWrites) return; // eco do nosso próprio salvamento — ignora
+    if(!snap.exists) return;
+    const data = snap.data();
+    equipamentos = (data.equipamentos || []).map(migrateLegacyFields);
+    planoState = data.planoState || {};
+    commissionRates = data.commissionRates || commissionRates;
+    aplicarCommissionRatesNosCampos();
+    renderAll();
+  });
+}
+
+let salvando = false;
+async function persistState(){
+  if(salvando) return; // evita salvamentos simultâneos empilhados
+  salvando = true;
+  try{
+    await ensureAuth();
+    await docRef.set({
+      equipamentos, planoState, commissionRates,
+      atualizadoEm: new Date().toISOString(),
+    });
+  }catch(err){
+    console.error('Falha ao salvar no Firebase:', err);
+  }finally{
+    salvando = false;
+  }
+}
+async function saveEquipamentos(){ await persistState(); }
+async function savePlano(){ await persistState(); }
+async function saveCommissionRates(){ await persistState(); }
+function updateCommissionRates(){
+  commissionRates = {
+    cheio: parseFloat(document.getElementById('rate_cheio').value)||0,
+    meio: parseFloat(document.getElementById('rate_meio').value)||0,
+    minimo: parseFloat(document.getElementById('rate_minimo').value)||0,
+  };
+  saveCommissionRates();
+  renderComissao();
+}
+
+/* ---------- Navigation ---------- */
+document.getElementById('nav').addEventListener('click', e=>{
+  const btn = e.target.closest('.nav-item');
+  if(!btn) return;
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
+  document.getElementById('tab-'+btn.dataset.tab).style.display='block';
+});
+
+/* ---------- Modal ---------- */
+function openModal(id){
+  editingId = id || null;
+  document.getElementById('modalTitle').textContent = id ? 'Editar equipamento' : 'Adicionar equipamento';
+  const eq = id ? equipamentos.find(e=>e.id===id) : null;
+  document.getElementById('f_codigo').value = eq ? eq.codigo : '';
+  document.getElementById('f_qtd').value = 1;
+  // Quantidade só faz sentido ao criar (define quantas linhas serão geradas de uma vez).
+  // Ao editar, cada linha já é uma máquina só, então o campo some.
+  document.getElementById('wrap_qtd').style.display = eq ? 'none' : 'block';
+  document.getElementById('qtd_hint').style.display = eq ? 'none' : 'block';
+  document.getElementById('f_marca').value = eq ? eq.marca : '';
+  document.getElementById('f_modelo').value = eq ? eq.modelo : '';
+  document.getElementById('f_condicao').value = eq ? eq.classificacao : '1';
+  document.getElementById('f_precoIdeal').value = eq ? eq.precoIdeal : '';
+  document.getElementById('f_precoMinimo').value = eq ? eq.precoMinimo : '';
+  document.getElementById('f_rota').value = eq ? eq.rota : 'Sozinha';
+  document.getElementById('f_canal').value = eq ? eq.canal : 'Marketplace';
+  document.getElementById('f_status').value = eq ? eq.status : 'DISPONIVEL';
+  document.getElementById('f_dataDisponivel').value = eq ? eq.dataDisponivel : todayISO();
+  document.getElementById('f_dataVenda').value = eq && eq.dataVenda ? eq.dataVenda : '';
+  document.getElementById('f_precoRealizado').value = eq && eq.precoRealizado ? eq.precoRealizado : '';
+  document.getElementById('f_numeroSerie').value = eq ? (eq.numeroSerie||'') : '';
+  document.getElementById('f_contagem').value = eq && eq.contagem ? eq.contagem : '';
+  document.getElementById('f_obs').value = eq ? (eq.obs||'') : '';
+  toggleVendaFields();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+document.getElementById('f_status').addEventListener('change', toggleVendaFields);
+function toggleVendaFields(){
+  const st = document.getElementById('f_status').value;
+  const show = st === 'PAGA' || st === 'ENTREGUE';
+  document.getElementById('wrap_dataVenda').style.display = show ? 'block' : 'none';
+  document.getElementById('wrap_precoRealizado').style.display = show ? 'block' : 'none';
+  if(show && !document.getElementById('f_dataVenda').value){
+    document.getElementById('f_dataVenda').value = todayISO();
+  }
+}
+function saveEquipamento(){
+  const codigo = document.getElementById('f_codigo').value.trim();
+  const marca = document.getElementById('f_marca').value.trim();
+  const modelo = document.getElementById('f_modelo').value.trim();
+  if(!codigo || !marca || !modelo){ alert('Preencha código, marca e modelo.'); return; }
+
+  const base = {
+    marca, modelo,
+    classificacao: document.getElementById('f_condicao').value,
+    precoIdeal: parseFloat(document.getElementById('f_precoIdeal').value)||0,
+    precoMinimo: parseFloat(document.getElementById('f_precoMinimo').value)||0,
+    rota: document.getElementById('f_rota').value,
+    canal: document.getElementById('f_canal').value,
+    status: document.getElementById('f_status').value,
+    dataDisponivel: document.getElementById('f_dataDisponivel').value || todayISO(),
+    dataVenda: document.getElementById('f_dataVenda').value || null,
+    precoRealizado: parseFloat(document.getElementById('f_precoRealizado').value)||0,
+    numeroSerie: document.getElementById('f_numeroSerie').value.trim(),
+    contagem: parseInt(document.getElementById('f_contagem').value)||0,
+    obs: document.getElementById('f_obs').value.trim(),
+  };
+
+  if(editingId){
+    // Edição: é sempre uma única máquina, a quantidade não entra aqui.
+    const idx = equipamentos.findIndex(e=>e.id===editingId);
+    equipamentos[idx] = {...equipamentos[idx], codigo, qtd:1, ...base};
+  } else {
+    // Criação: gera uma linha por unidade, cada uma podendo andar no funil sozinha.
+    const qtdUnidades = parseInt(document.getElementById('f_qtd').value)||1;
+    for(let i=1; i<=qtdUnidades; i++){
+      const codigoUnidade = qtdUnidades > 1 ? `${codigo}#${i}` : codigo;
+      equipamentos.push({id:uid(), codigo:codigoUnidade, qtd:1, lote:'', precoLoteUnidade:0, ...base});
+    }
+  }
+  saveEquipamentos();
+  closeModal();
+  renderAll();
+}
+function duplicateEquipamento(id){
+  const eq = equipamentos.find(e=>e.id===id);
+  if(!eq) return;
+  const cod = baseCodigo(eq.codigo);
+  const irmas = equipamentos.filter(e=>baseCodigo(e.codigo) === cod);
+  const proximoNum = irmas.length + 1;
+  const novo = {
+    ...eq, id:uid(), codigo:`${cod}#${proximoNum}`,
+    status:'DISPONIVEL', dataDisponivel: todayISO(), dataVenda:null, precoRealizado:0, lote:'', precoLoteUnidade:0,
+  };
+  equipamentos.push(novo);
+  saveEquipamentos();
+  renderAll();
+}
+function removeEquipamento(id){
+  if(!confirm('Remover este equipamento do inventário?')) return;
+  equipamentos = equipamentos.filter(e=>e.id!==id);
+  saveEquipamentos();
+  renderAll();
+}
+function changeStage(id, newStatus){
+  const eq = equipamentos.find(e=>e.id===id);
+  if(!eq) return;
+  eq.status = newStatus;
+  if((newStatus==='PAGA'||newStatus==='ENTREGUE') && !eq.dataVenda){ eq.dataVenda = todayISO(); }
+  saveEquipamentos();
+  renderAll();
+}
+
+/* ---------- Render: KPIs ---------- */
+function renderKPIs(){
+  const total = equipamentos.reduce((s,e)=>s+e.qtd,0);
+  const anunciadas = equipamentos.filter(e=>e.status!=='DISPONIVEL').reduce((s,e)=>s+e.qtd,0);
+  const pctAnunciado = total ? Math.round(anunciadas/total*100) : 0;
+  const leads = equipamentos.filter(e=>['LEAD','NEGOCIACAO','RESERVADA','PAGA','ENTREGUE'].includes(e.status)).reduce((s,e)=>s+e.qtd,0);
+  const negociacoes = equipamentos.filter(e=>e.status==='NEGOCIACAO').reduce((s,e)=>s+e.qtd,0);
+  const vendidas = equipamentos.filter(e=>['PAGA','ENTREGUE'].includes(e.status));
+  const now = new Date();
+  const vendidasMes = vendidas.filter(e=>e.dataVenda && (new Date(e.dataVenda).getMonth()===now.getMonth()) && (new Date(e.dataVenda).getFullYear()===now.getFullYear()));
+  const seteDiasAtras = new Date(now.getTime() - 7*86400000);
+  const vendidasSemana = vendidas.filter(e=>e.dataVenda && new Date(e.dataVenda) >= seteDiasAtras);
+  const qtdVendidaMes = vendidasMes.reduce((s,e)=>s+e.qtd,0);
+  const qtdVendidaSemana = vendidasSemana.reduce((s,e)=>s+e.qtd,0);
+  const receitaTotal = vendidas.reduce((s,e)=>s+(e.precoRealizado||0)*e.qtd,0);
+  const ticketMedio = vendidas.length ? receitaTotal / vendidas.reduce((s,e)=>s+e.qtd,0) : 0;
+  const idealMedio = vendidas.length ? vendidas.reduce((s,e)=>s+(e.precoIdeal||0),0)/vendidas.length : 0;
+  const realizadoMedio = vendidas.length ? vendidas.reduce((s,e)=>s+(e.precoRealizado||0),0)/vendidas.length : 0;
+  const pctVsIdeal = idealMedio ? Math.round(realizadoMedio/idealMedio*100) : null;
+  const tempos = vendidas.filter(e=>e.dataVenda).map(e=>daysBetween(e.dataDisponivel, e.dataVenda));
+  const tempoMedio = tempos.length ? Math.round(tempos.reduce((a,b)=>a+b,0)/tempos.length) : null;
+
+  const kpis = [
+    {label:'Máquinas ativas no processo', value: total, sub: total + ' unidades cadastradas'},
+    {label:'% do estoque já anunciado', value: pctAnunciado+'%', sub: anunciadas + ' de ' + total + ' unidades'},
+    {label:'Leads acumulados', value: leads, sub: 'unidades que já geraram lead'},
+    {label:'Negociações abertas', value: negociacoes, sub: 'unidades em negociação agora'},
+    {label:'Vendidas — semana', value: qtdVendidaSemana, sub: 'últimos 7 dias'},
+    {label:'Vendidas — mês', value: qtdVendidaMes, sub: 'mês corrente'},
+    {label:'Receita total realizada', value: fmtBRL(receitaTotal), sub: vendidas.reduce((s,e)=>s+e.qtd,0) + ' unidades vendidas'},
+    {label:'Ticket médio', value: fmtBRL(ticketMedio), sub: pctVsIdeal!==null ? pctVsIdeal+'% do preço ideal médio' : 'sem vendas ainda'},
+    {label:'Tempo médio até a venda', value: tempoMedio!==null ? tempoMedio+' dias' : '—', sub: 'da disponibilidade à venda'},
+  ];
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = kpis.map(k=>`
+    <div class="kpi">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('');
+}
+
+function renderFunnelBar(){
+  const total = equipamentos.reduce((s,e)=>s+e.qtd,0);
+  const bar = document.getElementById('funnelBar');
+  const legend = document.getElementById('funnelLegend');
+  if(!total){
+    bar.innerHTML = `<div class="funnel-seg" style="width:100%; background:#D4DAE6; color:#8A97AD;">Sem dados ainda</div>`;
+    legend.innerHTML = '';
+    return;
+  }
+  bar.innerHTML = STAGES.map(s=>{
+    const qtd = equipamentos.filter(e=>e.status===s.id).reduce((sum,e)=>sum+e.qtd,0);
+    const pct = qtd/total*100;
+    if(pct<=0) return '';
+    return `<div class="funnel-seg" style="width:${pct}%; background:${s.color};" title="${s.label}: ${qtd}">${pct>7?qtd:''}</div>`;
+  }).join('');
+  legend.innerHTML = STAGES.map(s=>{
+    const qtd = equipamentos.filter(e=>e.status===s.id).reduce((sum,e)=>sum+e.qtd,0);
+    return `<div class="funnel-legend-item"><span class="funnel-legend-dot" style="background:${s.color};"></span>${s.label} — ${qtd}</div>`;
+  }).join('');
+}
+
+function renderLiquidez(){
+  const vendidas = equipamentos.filter(e=>['PAGA','ENTREGUE'].includes(e.status));
+  const tbody = document.querySelector('#liquidezTable tbody');
+  if(!vendidas.length){
+    tbody.innerHTML = `<tr><td style="color:var(--muted); padding:12px 4px; border:none;">Ainda sem vendas registradas para calcular liquidez por modelo.</td></tr>`;
+    return;
+  }
+  const byModel = {};
+  vendidas.forEach(e=>{
+    const key = e.marca+' '+e.modelo;
+    if(!byModel[key]) byModel[key] = {qtd:0, tempos:[]};
+    byModel[key].qtd += e.qtd;
+    if(e.dataVenda) byModel[key].tempos.push(daysBetween(e.dataDisponivel, e.dataVenda));
+  });
+  const rows = Object.entries(byModel).sort((a,b)=>b[1].qtd-a[1].qtd).slice(0,8);
+  tbody.innerHTML = rows.map(([modelo, d])=>{
+    const media = d.tempos.length ? Math.round(d.tempos.reduce((a,b)=>a+b,0)/d.tempos.length) : '—';
+    return `<tr><td style="border:none; padding:6px 4px; font-weight:500;">${modelo}</td>
+      <td style="border:none; padding:6px 4px; text-align:right; color:var(--muted);">${d.qtd} un.</td>
+      <td style="border:none; padding:6px 4px; text-align:right; color:var(--muted);">${media}${media!=='—'?' dias':''}</td></tr>`;
+  }).join('');
+}
+
+function renderRotaSplit(){
+  const vendidas = equipamentos.filter(e=>['PAGA','ENTREGUE'].includes(e.status));
+  const el = document.getElementById('rotaSplit');
+  const total = vendidas.reduce((s,e)=>s+e.qtd,0);
+  if(!total){ el.innerHTML = `<p style="color:var(--muted); font-size:12.5px;">Ainda sem vendas registradas.</p>`; return; }
+  const rotas = ['Sozinha','Lote'];
+  const labels = {Sozinha:'Sozinha', Lote:'Em lote'};
+  const colors = {Sozinha:'#1B4B8F', Lote:'#D69A00'};
+  el.innerHTML = rotas.map(r=>{
+    const qtd = vendidas.filter(e=>e.rota===r).reduce((s,e)=>s+e.qtd,0);
+    const pct = total ? Math.round(qtd/total*100) : 0;
+    return `<div style="margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;">
+        <span>${labels[r]}</span><span class="mono" style="color:var(--muted);">${qtd} un. · ${pct}%</span>
+      </div>
+      <div class="progress-track" style="margin:0;"><div class="progress-fill" style="width:${pct}%; background:${colors[r]};"></div></div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- Render: Kanban ---------- */
+function renderKanban(){
+  const kanban = document.getElementById('kanban');
+  kanban.innerHTML = STAGES.map(s=>{
+    const items = equipamentos.filter(e=>e.status===s.id);
+    const qtd = items.reduce((sum,e)=>sum+e.qtd,0);
+    return `<div class="kanban-col">
+      <div class="kanban-head">
+        <div class="kanban-title">${s.label}</div>
+        <div class="kanban-count">${qtd}</div>
+      </div>
+      <div class="kanban-body">
+        ${items.length ? items.map(e=>`
+          <div class="kcard">
+            <div class="kcard-title">${e.marca} ${e.modelo}</div>
+            <div class="kcard-meta">${e.codigo} · ${daysBetween(e.dataDisponivel, todayISO())}d em estoque</div>
+            <select onchange="changeStage('${e.id}', this.value)">
+              ${STAGES.map(st=>`<option value="${st.id}" ${st.id===e.status?'selected':''}>${st.label}</option>`).join('')}
+            </select>
+          </div>
+        `).join('') : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- Render: Estoque agrupado por modelo ou por lote de venda ---------- */
+function toggleGroup(key){
+  if(expandedGroups.has(key)) expandedGroups.delete(key); else expandedGroups.add(key);
+}
+function setGroupBy(mode){
+  groupBy = mode;
+  renderEstoque();
+}
+function toggleSelect(id, checked){
+  if(checked) selectedIds.add(id); else selectedIds.delete(id);
+  renderSelectionBar();
+}
+function clearSelection(){
+  selectedIds.clear();
+  renderEstoque();
+}
+function groupIntoLote(){
+  const nome = document.getElementById('loteNomeInput').value.trim();
+  if(!nome){ alert('Dá um nome pro lote (ex: "Lote outsourcing Fênix").'); return; }
+  if(!selectedIds.size){ alert('Selecione pelo menos uma máquina.'); return; }
+  equipamentos.forEach(e=>{ if(selectedIds.has(e.id)) e.lote = nome; });
+  saveEquipamentos();
+  selectedIds.clear();
+  groupBy = 'lote';
+  renderEstoque();
+}
+function removerDoLote(id){
+  const e = equipamentos.find(x=>x.id===id);
+  if(!e) return;
+  e.lote = '';
+  saveEquipamentos();
+  renderEstoque();
+}
+function deleteLote(loteName){
+  if(!confirm(`Excluir o lote "${loteName}"? As máquinas não são apagadas — elas voltam a ficar avulsas, sem lote.`)) return;
+  equipamentos.forEach(e=>{ if(e.lote === loteName){ e.lote=''; e.precoLoteUnidade=0; } });
+  saveEquipamentos();
+  renderEstoque();
+}
+function setLotePreco(loteName, value){
+  const preco = parseFloat(value)||0;
+  equipamentos.forEach(e=>{ if(e.lote === loteName) e.precoLoteUnidade = preco; });
+  saveEquipamentos();
+  renderEstoque();
+}
+function changeStageLote(loteName, newStatus){
+  if(!newStatus) return;
+  equipamentos.forEach(e=>{
+    if(e.lote === loteName){
+      e.status = newStatus;
+      if(newStatus==='PAGA'||newStatus==='ENTREGUE'){
+        if(!e.dataVenda) e.dataVenda = todayISO();
+        // Se a unidade ainda não tem preço vendido registrado, usa o preço do lote definido.
+        if(!e.precoRealizado && e.precoLoteUnidade) e.precoRealizado = e.precoLoteUnidade;
+      }
+    }
+  });
+  saveEquipamentos();
+  renderAll();
+}
+function renderSelectionBar(){
+  const bar = document.getElementById('loteActionBar');
+  if(!bar) return;
+  if(selectedIds.size > 0){
+    bar.style.display = 'flex';
+    document.getElementById('loteSelCount').textContent = selectedIds.size + (selectedIds.size===1 ? ' máquina selecionada' : ' máquinas selecionadas');
+  } else {
+    bar.style.display = 'none';
+  }
+}
+function unitCheckbox(e){
+  return `<input type="checkbox" ${selectedIds.has(e.id)?'checked':''} onchange="toggleSelect('${e.id}', this.checked)">`;
+}
+function unitEtapaSelect(e){
+  return `<select onchange="changeStage('${e.id}', this.value)">
+    ${STAGES.map(st=>`<option value="${st.id}" ${st.id===e.status?'selected':''}>${st.label}</option>`).join('')}
+  </select>`;
+}
+
+function modeloGroupsHTML(list){
+  const groups = {};
+  list.forEach(e=>{
+    const key = e.marca+' | '+e.modelo;
+    if(!groups[key]) groups[key] = [];
+    groups[key].push(e);
+  });
+  const keys = Object.keys(groups).sort();
+  if(!keys.length) return '';
+
+  return keys.map(key=>{
+    const items = groups[key].sort((a,b)=> STAGES.findIndex(s=>s.id===a.status) - STAGES.findIndex(s=>s.id===b.status));
+    const [marca, modelo] = key.split(' | ');
+    const isOpen = expandedGroups.has('modelo:'+key);
+    const statusCounts = {};
+    items.forEach(e=>{ statusCounts[e.status] = (statusCounts[e.status]||0)+1; });
+    const badges = STAGES.filter(s=>statusCounts[s.id]).map(s=>
+      `<span class="group-badge" style="background:${s.color}22; color:${s.color};">${statusCounts[s.id]} ${s.label}</span>`
+    ).join('');
+
+    const rows = items.map(e=>{
+      const dias = e.dataVenda ? daysBetween(e.dataDisponivel, e.dataVenda) : daysBetween(e.dataDisponivel, todayISO());
+      return `<tr>
+        <td>${unitCheckbox(e)}</td>
+        <td class="mono">${e.codigo}${(e.numeroSerie || e.contagem) ? `<div style="color:var(--muted); font-size:10px;">${e.numeroSerie ? 'S/N '+e.numeroSerie : ''}${e.numeroSerie && e.contagem ? ' · ' : ''}${e.contagem ? e.contagem.toLocaleString('pt-BR')+' pág.' : ''}</div>` : ''}</td>
+        <td>${classificacaoBadge(e)}</td>
+        <td>${faixaBadge(e)}</td>
+        <td class="mono">${fmtBRL(e.precoIdeal)}</td>
+        <td>${e.rota==='Lote'?'Em lote':'Sozinha'}${e.lote ? `<div style="color:var(--muted); font-size:10px;">📦 ${e.lote}</div>` : ''}</td>
+        <td>${e.canal}</td>
+        <td>${unitEtapaSelect(e)}</td>
+        <td class="mono">${dias}d</td>
+        <td class="mono">${e.precoRealizado ? fmtBRL(e.precoRealizado) : '—'}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-sm" onclick="openModal('${e.id}')">Editar</button>
+          <button class="btn btn-sm" onclick="duplicateEquipamento('${e.id}')" title="Cadastrar outra unidade igual">+1 igual</button>
+          <button class="btn btn-sm btn-ghost" onclick="removeEquipamento('${e.id}')">Remover</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    return `<div class="group-card">
+      <details ${isOpen?'open':''}>
+        <summary class="group-summary" onclick="event.preventDefault(); toggleGroup('modelo:${key.replace(/'/g,"\\'")}'); renderEstoque();">
+          <span class="group-title">${marca} ${modelo}</span>
+          <span class="group-count">${items.length} un.</span>
+          <span class="group-badges">${badges}</span>
+        </summary>
+        <div class="table-wrap">
+          <table class="unit-table">
+            <thead><tr>
+              <th></th><th>Código</th><th>Classificação</th><th>Faixa</th><th>Preço ideal</th><th>Modo</th><th>Canal</th><th>Etapa</th><th>Dias</th><th>Preço vendido</th><th></th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </details>
+    </div>`;
+  }).join('');
+}
+
+function loteGroupsHTML(list){
+  const comLote = {};
+  const semLote = [];
+  list.forEach(e=>{
+    if(e.lote){ (comLote[e.lote] = comLote[e.lote]||[]).push(e); }
+    else semLote.push(e);
+  });
+  const loteNames = Object.keys(comLote).sort();
+
+  let html = loteNames.map(loteName=>{
+    const items = comLote[loteName].sort((a,b)=> STAGES.findIndex(s=>s.id===a.status) - STAGES.findIndex(s=>s.id===b.status));
+    const key = 'lote:'+loteName;
+    const isOpen = expandedGroups.has(key);
+    const totalIdeal = items.reduce((s,e)=>s+e.precoIdeal,0);
+    const precoCheioMedio = totalIdeal / items.length;
+    const precoLoteAtual = items[0].precoLoteUnidade || 0;
+    const desconto = (precoLoteAtual > 0 && precoCheioMedio > 0) ? Math.round((1 - precoLoteAtual/precoCheioMedio) * 100) : null;
+    const statusCounts = {};
+    items.forEach(e=>{ statusCounts[e.status] = (statusCounts[e.status]||0)+1; });
+    const badges = STAGES.filter(s=>statusCounts[s.id]).map(s=>
+      `<span class="group-badge" style="background:${s.color}22; color:${s.color};">${statusCounts[s.id]} ${s.label}</span>`
+    ).join('');
+
+    const rows = items.map(e=>{
+      const dias = e.dataVenda ? daysBetween(e.dataDisponivel, e.dataVenda) : daysBetween(e.dataDisponivel, todayISO());
+      return `<tr>
+        <td>${unitCheckbox(e)}</td>
+        <td class="mono">${e.codigo}${(e.numeroSerie || e.contagem) ? `<div style="color:var(--muted); font-size:10px;">${e.numeroSerie ? 'S/N '+e.numeroSerie : ''}${e.numeroSerie && e.contagem ? ' · ' : ''}${e.contagem ? e.contagem.toLocaleString('pt-BR')+' pág.' : ''}</div>` : ''}</td>
+        <td>${e.marca} ${e.modelo}</td>
+        <td>${classificacaoBadge(e)}</td>
+        <td>${faixaBadge(e)}</td>
+        <td class="mono">${fmtBRL(e.precoIdeal)}</td>
+        <td>${unitEtapaSelect(e)}</td>
+        <td class="mono">${dias}d</td>
+        <td class="mono">${e.precoRealizado ? fmtBRL(e.precoRealizado) : '—'}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-sm" onclick="openModal('${e.id}')">Editar</button>
+          <button class="btn btn-sm btn-ghost" onclick="removerDoLote('${e.id}')" title="Tira só esta máquina do lote">Tirar do lote</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    return `<div class="group-card">
+      <details ${isOpen?'open':''}>
+        <summary class="group-summary" onclick="event.preventDefault(); toggleGroup('${key.replace(/'/g,"\\'")}'); renderEstoque();">
+          <span class="group-title">📦 ${loteName}</span>
+          <span class="group-count">${items.length} un. · ${fmtBRL(totalIdeal)}</span>
+          <span class="group-badges">${badges}</span>
+          <select class="group-add" onclick="event.stopPropagation()" onchange="event.stopPropagation(); changeStageLote('${loteName.replace(/'/g,"\\'")}', this.value); this.value='';">
+            <option value="">Mudar etapa do lote todo…</option>
+            ${STAGES.map(st=>`<option value="${st.id}">${st.label}</option>`).join('')}
+          </select>
+          <button class="lote-delete-btn" onclick="event.stopPropagation(); deleteLote('${loteName.replace(/'/g,"\\'")}');" title="Excluir este lote (as máquinas voltam a ficar avulsas)">🗑</button>
+        </summary>
+        <div class="lote-price-strip">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <label style="margin:0; white-space:nowrap;">Preço por unidade no lote</label>
+            <input type="number" min="0" step="0.01" placeholder="0,00" style="width:110px;"
+              value="${precoLoteAtual || ''}"
+              onchange="setLotePreco('${loteName.replace(/'/g,"\\'")}', this.value)">
+          </div>
+          <div class="mono" style="font-size:12px; color:var(--muted);">Preço cheio (média por unidade): ${fmtBRL(precoCheioMedio)}</div>
+          ${desconto!==null ? `<span class="tag ${desconto>0?'tag-B':(desconto<0?'tag-C':'tag-A')}">${
+            desconto>0 ? desconto+'% de desconto no lote' : (desconto<0 ? Math.abs(desconto)+'% acima do cheio' : 'igual ao preço cheio')
+          }</span>` : `<span class="hint" style="margin:0;">Preencha o preço do lote para ver o desconto</span>`}
+        </div>
+        <div class="table-wrap">
+          <table class="unit-table">
+            <thead><tr>
+              <th></th><th>Código</th><th>Máquina</th><th>Classificação</th><th>Faixa</th><th>Preço ideal</th><th>Etapa</th><th>Dias</th><th>Preço vendido</th><th></th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </details>
+    </div>`;
+  }).join('');
+
+  if(semLote.length){
+    html += `<p class="hint" style="margin:16px 2px 8px;">Sem lote de venda — agrupadas por modelo, como de costume:</p>` + modeloGroupsHTML(semLote);
+  }
+  return html;
+}
+
+function renderEstoque(){
+  const filterClassificacao = document.getElementById('filterClassificacao').value;
+  const filterRota = document.getElementById('filterRota').value;
+  const filterCanal = document.getElementById('filterCanal').value;
+  const filterStatus = document.getElementById('filterStatus').value;
+  let list = equipamentos.slice();
+  if(filterClassificacao) list = list.filter(e=>e.classificacao===filterClassificacao);
+  if(filterRota) list = list.filter(e=>e.rota===filterRota);
+  if(filterCanal) list = list.filter(e=>e.canal===filterCanal);
+  if(filterStatus) list = list.filter(e=>e.status===filterStatus);
+
+  document.getElementById('estoqueEmpty').style.display = equipamentos.length ? 'none' : 'block';
+  document.getElementById('estoqueGroups').style.display = equipamentos.length ? 'block' : 'none';
+
+  document.getElementById('btnGroupModelo').classList.toggle('active-toggle', groupBy==='modelo');
+  document.getElementById('btnGroupLote').classList.toggle('active-toggle', groupBy==='lote');
+
+  const container = document.getElementById('estoqueGroups');
+  const html = groupBy === 'lote' ? loteGroupsHTML(list) : modeloGroupsHTML(list);
+  container.innerHTML = html || (equipamentos.length ? `<p class="hint" style="padding:8px 2px;">Nenhuma máquina corresponde aos filtros selecionados.</p>` : '');
+
+  renderSelectionBar();
+
+  // popula filtro de etapa uma única vez
+  const statusFilter = document.getElementById('filterStatus');
+  if(statusFilter.options.length <= 1){
+    STAGES.forEach(s=>{
+      const opt = document.createElement('option');
+      opt.value = s.id; opt.textContent = s.label;
+      statusFilter.appendChild(opt);
+    });
+  }
+}
+
+/* ---------- Render: Plano ---------- */
+function renderPlano(){
+  const list = document.getElementById('planoList');
+  list.innerHTML = PLANO_DIAS.map((d,i)=>{
+    const done = !!planoState[i];
+    return `<div class="day-row">
+      <input type="checkbox" class="day-check" ${done?'checked':''} onchange="togglePlano(${i}, this.checked)">
+      <div>
+        <div class="day-label">${d.dia}</div>
+        <div class="day-text ${done?'done':''}">${d.texto}</div>
+      </div>
+    </div>`;
+  }).join('');
+  const doneCount = PLANO_DIAS.filter((_,i)=>planoState[i]).length;
+  document.getElementById('planoProgress').style.width = (doneCount/PLANO_DIAS.length*100)+'%';
+}
+function togglePlano(i, val){
+  planoState[i] = val;
+  savePlano();
+  renderPlano();
+}
+
+function classifyVenda(eq){
+  // Faixa cheia: vendeu no preço ideal ou acima. Faixa mínima: vendeu no piso ou abaixo.
+  // Entre os dois, é a faixa meio.
+  if(eq.precoIdeal && eq.precoRealizado >= eq.precoIdeal) return 'cheio';
+  if(eq.precoMinimo && eq.precoRealizado <= eq.precoMinimo) return 'minimo';
+  return 'meio';
+}
+const tierLabel = {cheio:'Valor cheio', meio:'Valor meio', minimo:'Valor mínimo'};
+const tierClass = {cheio:'tag-A', meio:'tag-B', minimo:'tag-C'};
+function metaTier(e){
+  // A classificação física da máquina define a meta de preço antes de vender:
+  // 1 (perfeita) mira o valor cheio, 2 (falta peça-chave) mira negociação, 3 (não funciona) mira o piso.
+  if(e.classificacao === '2') return 'meio';
+  if(e.classificacao === '3') return 'minimo';
+  return 'cheio';
+}
+function faixaBadge(e){
+  // Enquanto não há preço vendido registrado, mostra a meta com base na classificação —
+  // a faixa real só existe depois que a venda de fato acontece.
+  if(e.precoRealizado > 0){
+    const tier = classifyVenda(e);
+    return `<span class="tag ${tierClass[tier]}">${tierLabel[tier]}</span>`;
+  }
+  const meta = metaTier(e);
+  const metaLabel = {
+    cheio: (e.rota==='Lote' ? 'Meta: cheio (desc. em lote)' : 'Meta: cheio'),
+    meio: 'Meta: negociação',
+    minimo: 'Meta: piso',
+  };
+  return `<span class="tag ${tierClass[meta]}" style="opacity:.8;">${metaLabel[meta]}</span>`;
+}
+function classificacaoBadge(e){
+  const map = {
+    '1': {cls:'tag-A', label:'1 — Perfeita'},
+    '2': {cls:'tag-B', label:'2 — Falta peça'},
+    '3': {cls:'tag-C', label:'3 — Não funciona'},
+  };
+  const d = map[e.classificacao] || map['1'];
+  return `<span class="tag ${d.cls}">${d.label}</span>`;
+}
+
+function renderComissao(){
+  const vendidas = equipamentos.filter(e=>['PAGA','ENTREGUE'].includes(e.status) && e.precoRealizado>0);
+  const tbody = document.querySelector('#comissaoTable tbody');
+  document.getElementById('comissaoEmpty').style.display = vendidas.length ? 'none' : 'block';
+  document.getElementById('comissaoTable').style.display = vendidas.length ? 'table' : 'none';
+
+  let totalVendido = 0, totalComissao = 0;
+  tbody.innerHTML = vendidas.map(e=>{
+    const tier = classifyVenda(e);
+    const pct = commissionRates[tier];
+    const totalItem = e.precoRealizado * e.qtd;
+    const comissaoItem = totalItem * (pct/100);
+    totalVendido += totalItem;
+    totalComissao += comissaoItem;
+    return `<tr>
+      <td>${e.marca} ${e.modelo}<div style="color:var(--muted); font-size:10.5px;">${e.codigo}</div></td>
+      <td class="mono">${e.qtd}</td>
+      <td class="mono">${fmtBRL(e.precoRealizado)}</td>
+      <td class="mono">${fmtBRL(totalItem)}</td>
+      <td><span class="tag ${tierClass[tier]}">${tierLabel[tier]}</span></td>
+      <td class="mono">${pct}%</td>
+      <td class="mono" style="font-weight:600; color:var(--success);">${fmtBRL(comissaoItem)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('comissaoTotalVendido').textContent = fmtBRL(totalVendido);
+  document.getElementById('comissaoTotal').textContent = fmtBRL(totalComissao);
+}
+
+/* ---------- Render: Canal de venda ---------- */
+function renderCanalVenda(){
+  const ativos = equipamentos.filter(e=>e.status!=='ENTREGUE');
+  const mkt = ativos.filter(e=>e.canal==='Marketplace');
+  const pros = ativos.filter(e=>e.canal==='Prospecção ativa');
+  document.getElementById('countMarketplace').textContent = mkt.length;
+  document.getElementById('countProspeccao').textContent = pros.length;
+
+  function chipList(items){
+    if(!items.length) return `<li class="hint" style="margin:0;">Nenhuma máquina ativa neste canal.</li>`;
+    const byModel = {};
+    items.forEach(e=>{
+      const key = e.marca+' '+e.modelo;
+      byModel[key] = (byModel[key]||0)+1;
+    });
+    return Object.entries(byModel).map(([nome,qtd])=>
+      `<li style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; padding:6px 10px; background:var(--navy-pale); border-radius:3px;">
+        <span>${nome}</span><span class="mono" style="color:var(--navy); font-weight:600;">${qtd}</span>
+      </li>`).join('');
+  }
+  document.getElementById('listMarketplace').innerHTML = chipList(mkt);
+  document.getElementById('listProspeccao').innerHTML = chipList(pros);
+
+  const total = ativos.length;
+  const el = document.getElementById('modoBreakdown');
+  if(!total){ el.innerHTML = `<p class="hint" style="margin:0;">Nenhuma máquina ativa no estoque ainda.</p>`; return; }
+  const sozinha = ativos.filter(e=>e.rota==='Sozinha').length;
+  const lote = ativos.filter(e=>e.rota==='Lote').length;
+  const pctSoz = Math.round(sozinha/total*100);
+  const pctLote = Math.round(lote/total*100);
+  el.innerHTML = `
+    <div style="display:flex; gap:24px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:200px;">
+        <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;"><span>Sozinha</span><span class="mono" style="color:var(--muted);">${sozinha} un. · ${pctSoz}%</span></div>
+        <div class="progress-track" style="margin:0;"><div class="progress-fill" style="width:${pctSoz}%; background:#1B4B8F;"></div></div>
+      </div>
+      <div style="flex:1; min-width:200px;">
+        <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;"><span>Em lote</span><span class="mono" style="color:var(--muted);">${lote} un. · ${pctLote}%</span></div>
+        <div class="progress-track" style="margin:0;"><div class="progress-fill" style="width:${pctLote}%; background:#D69A00;"></div></div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:10px;">Contagem sobre máquinas ainda ativas (não entregues). Modelos marcados "Em lote" rendem mais reunidos com outras unidades do mesmo perfil do que vendidos um a um.</p>`;
+}
+
+function renderAll(){
+  renderKPIs();
+  renderFunnelBar();
+  renderLiquidez();
+  renderRotaSplit();
+  renderComissao();
+  renderKanban();
+  renderEstoque();
+  renderCanalVenda();
+  renderPlano();
+}
+
+loadData();
+</script>
+</body>
+</html>
